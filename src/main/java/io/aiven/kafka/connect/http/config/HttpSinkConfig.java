@@ -53,6 +53,11 @@ public class HttpSinkConfig extends AbstractConfig {
     private static final String OAUTH2_CLIENT_SCOPE_CONFIG = "oauth2.client.scope";
     private static final String OAUTH2_RESPONSE_TOKEN_PROPERTY_CONFIG = "oauth2.response.token.property";
 
+
+    private static final String APIKEY_ACCESS_TOKEN_URL_CONFIG = "apikey.access.token.url";
+    private static final String APIKEY_ACCESS_TOKEN_KEY_CONFIG = "apikey.access.token.key";
+    private static final String APIKEY_ACCESS_TOKEN_SECRET_CONFIG = "apikey.access.token.secret";
+
     private static final String BATCHING_GROUP = "Batching";
     private static final String BATCHING_ENABLED_CONFIG = "batching.enabled";
     private static final String BATCH_MAX_SIZE_CONFIG = "batch.max.size";
@@ -314,6 +319,60 @@ public class HttpSinkConfig extends AbstractConfig {
                 List.of(OAUTH2_ACCESS_TOKEN_URL_CONFIG, OAUTH2_CLIENT_ID_CONFIG, OAUTH2_CLIENT_SECRET_CONFIG,
                         OAUTH2_CLIENT_AUTHORIZATION_MODE_CONFIG, OAUTH2_CLIENT_SCOPE_CONFIG)
         );
+        configDef.define(
+                APIKEY_ACCESS_TOKEN_URL_CONFIG,
+                ConfigDef.Type.STRING,
+                null,
+                new ConfigDef.NonEmptyStringWithoutControlChars() {
+                    @Override
+                    public String toString() {
+                        return "ApiKey scope";
+                    }
+                },
+                ConfigDef.Importance.LOW,
+                "The URL of the REST API to call returning the access token",
+                CONNECTION_GROUP,
+                groupCounter++,
+                ConfigDef.Width.MEDIUM,
+                APIKEY_ACCESS_TOKEN_URL_CONFIG,
+                List.of(APIKEY_ACCESS_TOKEN_KEY_CONFIG, APIKEY_ACCESS_TOKEN_SECRET_CONFIG)
+        );
+        configDef.define(
+                APIKEY_ACCESS_TOKEN_KEY_CONFIG,
+                ConfigDef.Type.STRING,
+                null,
+                new ConfigDef.NonEmptyStringWithoutControlChars() {
+                    @Override
+                    public String toString() {
+                        return "ApiKey scope";
+                    }
+                },
+                ConfigDef.Importance.LOW,
+                "The key value of the body sent to REST API returning the access token",
+                CONNECTION_GROUP,
+                groupCounter++,
+                ConfigDef.Width.MEDIUM,
+                APIKEY_ACCESS_TOKEN_KEY_CONFIG,
+                List.of(APIKEY_ACCESS_TOKEN_URL_CONFIG, APIKEY_ACCESS_TOKEN_SECRET_CONFIG)
+        );
+        configDef.define(
+                APIKEY_ACCESS_TOKEN_SECRET_CONFIG,
+                ConfigDef.Type.STRING,
+                null,
+                new ConfigDef.NonEmptyStringWithoutControlChars() {
+                    @Override
+                    public String toString() {
+                        return "ApiKey scope";
+                    }
+                },
+                ConfigDef.Importance.LOW,
+                "The secret value of the body sent to REST API returning the access token",
+                CONNECTION_GROUP,
+                groupCounter++,
+                ConfigDef.Width.MEDIUM,
+                APIKEY_ACCESS_TOKEN_SECRET_CONFIG,
+                List.of(APIKEY_ACCESS_TOKEN_URL_CONFIG, APIKEY_ACCESS_TOKEN_KEY_CONFIG)
+        );
     }
 
     private static void addBatchingConfigGroup(final ConfigDef configDef) {
@@ -523,6 +582,26 @@ public class HttpSinkConfig extends AbstractConfig {
                                     + " = " + AuthorizationType.OAUTH2);
                 }
                 break;
+            case APIKEY:
+                if(apikeyAccessTokenUri() == null) {
+                    throw new ConfigException(
+                            APIKEY_ACCESS_TOKEN_URL_CONFIG, getString(APIKEY_ACCESS_TOKEN_URL_CONFIG),
+                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
+                                    + " = " + AuthorizationType.APIKEY);
+                }
+                if(apikeyAccessTokenKey() == null || apikeyAccessTokenKey().isEmpty()) {
+                    throw new ConfigException(
+                            APIKEY_ACCESS_TOKEN_KEY_CONFIG, getString(APIKEY_ACCESS_TOKEN_KEY_CONFIG),
+                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
+                                    + " = " + AuthorizationType.APIKEY);
+                }
+                if (apikeyAccessTokenSecret() == null || apikeyAccessTokenSecret().isEmpty()) {
+                    throw new ConfigException(
+                            APIKEY_ACCESS_TOKEN_SECRET_CONFIG, getString(APIKEY_ACCESS_TOKEN_SECRET_CONFIG),
+                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
+                                    + " = " + AuthorizationType.APIKEY);
+                }
+                break;
             case NONE:
                 if (headerAuthorization() != null && !headerAuthorization().isBlank()) {
                     throw new ConfigException(
@@ -649,6 +728,18 @@ public class HttpSinkConfig extends AbstractConfig {
 
     public final String oauth2ResponseTokenProperty() {
         return getString(OAUTH2_RESPONSE_TOKEN_PROPERTY_CONFIG);
+    }
+
+    public final URI apikeyAccessTokenUri() {
+        return getString(APIKEY_ACCESS_TOKEN_URL_CONFIG) != null ? toURI(APIKEY_ACCESS_TOKEN_URL_CONFIG) : null;
+    }
+
+    public final String apikeyAccessTokenKey() {
+        return getString(APIKEY_ACCESS_TOKEN_KEY_CONFIG);
+    }
+
+    public final String apikeyAccessTokenSecret() {
+        return getString(APIKEY_ACCESS_TOKEN_SECRET_CONFIG);
     }
 
     public static void main(final String... args) {

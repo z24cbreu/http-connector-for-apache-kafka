@@ -263,6 +263,14 @@ final class HttpSinkConfigTest {
                                 "oauth2.access.token.url", "http://localhost:42",
                                 "oauth2.client.id", "client_id",
                                 "oauth2.client.secret", "client_secret"
+                        )),
+                Arguments.of(AuthorizationType.APIKEY,
+                        Map.of(
+                                "http.url", "http://localhost:8090",
+                                "http.authorization.type", AuthorizationType.APIKEY.name,
+                                "apikey.access.token.url", "http://localhost:42",
+                                "apikey.access.token.key", "key",
+                                "apikey.access.token.secret", "secret"
                         ))
         );
     }
@@ -278,7 +286,7 @@ final class HttpSinkConfigTest {
                 .describedAs("Expected config exception due to unsupported authorization type")
                 .isThrownBy(() -> new HttpSinkConfig(properties))
                 .withMessage("Invalid value unsupported for configuration http.authorization.type: "
-                        + "supported values are: [none, oauth2, static]");
+                        + "supported values are: [none, oauth2, static, apikey]");
     }
 
     @Test

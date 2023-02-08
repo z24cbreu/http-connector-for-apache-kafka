@@ -108,6 +108,8 @@ public class HttpSender {
                 return new HttpSender(config, HttpRequestBuilder.AUTH_HTTP_REQUEST_BUILDER);
             case OAUTH2:
                 return new OAuth2HttpSender(config);
+            case APIKEY:
+                return new ApiKeyHttpSender(config);
             default:
                 throw new ConnectException("Can't create HTTP sender for auth type: " + config.authorizationType());
         }
