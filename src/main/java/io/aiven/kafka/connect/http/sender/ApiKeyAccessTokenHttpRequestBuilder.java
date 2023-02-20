@@ -16,17 +16,19 @@ public class ApiKeyAccessTokenHttpRequestBuilder implements HttpRequestBuilder {
     @Override
     public HttpRequest.Builder build(HttpSinkConfig config) {
         Objects.requireNonNull(config, "config");
-        Objects.requireNonNull(config.apikeyAccessTokenUri(), "apikeyAccessTokenUri");
+        Objects.requireNonNull(config.oauth2AccessTokenUri(), "oauth2AccessTokenUri");
+        Objects.requireNonNull(config.oauth2ClientId(), "oauth2ClientId");
+        Objects.requireNonNull(config.oauth2ClientSecret(), "oauth2ClientSecret");
 
         final var accessTokenRequestBuilder = HttpRequest
-                .newBuilder(config.apikeyAccessTokenUri())
+                .newBuilder(config.oauth2AccessTokenUri())
                 .timeout(Duration.ofSeconds(config.httpTimeout()))
                 .header(HEADER_CONTENT_TYPE, "application/json");
 
         AccessTokenRequest accessTokenRequest = new AccessTokenRequest();
         accessTokenRequest.setType("api-key");
-        accessTokenRequest.setKey(config.apikeyAccessTokenKey());
-        accessTokenRequest.setSecret(config.apikeyAccessTokenSecret());
+        accessTokenRequest.setKey(config.oauth2ClientId());
+        accessTokenRequest.setSecret(config.oauth2ClientSecret().value());
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {

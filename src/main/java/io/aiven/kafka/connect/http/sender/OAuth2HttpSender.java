@@ -16,21 +16,19 @@
 
 package io.aiven.kafka.connect.http.sender;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.aiven.kafka.connect.http.config.HttpSinkConfig;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
-
-import org.apache.kafka.connect.errors.ConnectException;
-
-import io.aiven.kafka.connect.http.config.HttpSinkConfig;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class OAuth2HttpSender extends HttpSender {
 
@@ -40,19 +38,23 @@ final class OAuth2HttpSender extends HttpSender {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    OAuth2HttpSender(final HttpSinkConfig config) {
+    private final HttpRequestBuilder accessTokenRequestBuilder;
+
+    OAuth2HttpSender(final HttpSinkConfig config, final HttpRequestBuilder accessTokenRequestBuilder) {
         super(config);
+        this.accessTokenRequestBuilder = accessTokenRequestBuilder;
     }
 
     //for testing
     OAuth2HttpSender(final HttpSinkConfig config, final HttpClient httpClient) {
         super(config, httpClient);
+        this.accessTokenRequestBuilder = new AccessTokenHttpRequestBuilder(); // by default
     }
 
     @Override
     protected HttpResponse<String> sendWithRetries(final HttpRequest.Builder requestBuilder,
                                                    final HttpResponseHandler originHttpResponseHandler) {
-        final var accessTokenAwareRequestBuilder = loadOrRefreshAccessToken(requestBuilder);
+        final var accessTokenAwareRequestBuilder = loadOrRefreshAccessToken(requestBuilder, accessTokenRequestBuilder);
         final HttpResponseHandler handler = response -> {
             if (response.statusCode() == 401) { // access denied or refresh of a token is needed
                 this.accessTokenAuthHeader = null;
@@ -64,14 +66,14 @@ final class OAuth2HttpSender extends HttpSender {
         return super.sendWithRetries(accessTokenAwareRequestBuilder, handler);
     }
 
-    private HttpRequest.Builder loadOrRefreshAccessToken(final HttpRequest.Builder requestBuilder) {
+    private HttpRequest.Builder loadOrRefreshAccessToken(final HttpRequest.Builder requestBuilder, HttpRequestBuilder accessTokenRequestBuilder ) {
         if (accessTokenAuthHeader == null) {
             logger.info("Configure OAuth2 for URI: {} and Client ID: {}",
                     config.oauth2AccessTokenUri(), config.oauth2ClientId());
             try {
                 final var response =
                         super.sendWithRetries(
-                                new AccessTokenHttpRequestBuilder().build(config),
+                                accessTokenRequestBuilder.build(config),
                                 HttpResponseHandler.ON_HTTP_ERROR_RESPONSE_HANDLER
                         );
                 accessTokenAuthHeader = buildAccessTokenAuthHeader(response.body());

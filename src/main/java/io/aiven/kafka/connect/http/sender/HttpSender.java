@@ -16,18 +16,16 @@
 
 package io.aiven.kafka.connect.http.sender;
 
+import io.aiven.kafka.connect.http.config.HttpSinkConfig;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.kafka.connect.errors.ConnectException;
-
-import io.aiven.kafka.connect.http.config.HttpSinkConfig;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HttpSender {
 
@@ -107,9 +105,9 @@ public class HttpSender {
             case STATIC:
                 return new HttpSender(config, HttpRequestBuilder.AUTH_HTTP_REQUEST_BUILDER);
             case OAUTH2:
-                return new OAuth2HttpSender(config);
+                return new OAuth2HttpSender(config, new AccessTokenHttpRequestBuilder());
             case APIKEY:
-                return new ApiKeyHttpSender(config);
+                return new OAuth2HttpSender(config, new ApiKeyAccessTokenHttpRequestBuilder());
             default:
                 throw new ConnectException("Can't create HTTP sender for auth type: " + config.authorizationType());
         }

@@ -268,9 +268,9 @@ final class HttpSinkConfigTest {
                         Map.of(
                                 "http.url", "http://localhost:8090",
                                 "http.authorization.type", AuthorizationType.APIKEY.name,
-                                "apikey.access.token.url", "http://localhost:42",
-                                "apikey.access.token.key", "key",
-                                "apikey.access.token.secret", "secret"
+                                "oauth2.access.token.url", "http://localhost:42",
+                                "oauth2.client.id", "key",
+                                "oauth2.client.secret", "secret"
                         ))
         );
     }
