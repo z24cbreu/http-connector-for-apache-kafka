@@ -54,7 +54,7 @@ final class OAuth2HttpSender extends HttpSender {
     @Override
     protected HttpResponse<String> sendWithRetries(final HttpRequest.Builder requestBuilder,
                                                    final HttpResponseHandler originHttpResponseHandler) {
-        final var accessTokenAwareRequestBuilder = loadOrRefreshAccessToken(requestBuilder, accessTokenRequestBuilder);
+        final var accessTokenAwareRequestBuilder = loadOrRefreshAccessToken(requestBuilder);
         final HttpResponseHandler handler = response -> {
             if (response.statusCode() == 401) { // access denied or refresh of a token is needed
                 this.accessTokenAuthHeader = null;
@@ -66,7 +66,7 @@ final class OAuth2HttpSender extends HttpSender {
         return super.sendWithRetries(accessTokenAwareRequestBuilder, handler);
     }
 
-    private HttpRequest.Builder loadOrRefreshAccessToken(final HttpRequest.Builder requestBuilder, HttpRequestBuilder accessTokenRequestBuilder ) {
+    private HttpRequest.Builder loadOrRefreshAccessToken(final HttpRequest.Builder requestBuilder) {
         if (accessTokenAuthHeader == null) {
             logger.info("Configure OAuth2 for URI: {} and Client ID: {}",
                     config.oauth2AccessTokenUri(), config.oauth2ClientId());

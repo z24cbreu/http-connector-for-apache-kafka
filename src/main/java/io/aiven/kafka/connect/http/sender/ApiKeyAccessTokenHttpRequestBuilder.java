@@ -3,7 +3,9 @@ package io.aiven.kafka.connect.http.sender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.aiven.kafka.connect.http.config.HttpSinkConfig;
+import org.apache.kafka.connect.errors.ConnectException;
 
+import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.Objects;
@@ -23,12 +25,10 @@ public class ApiKeyAccessTokenHttpRequestBuilder implements HttpRequestBuilder {
         final var accessTokenRequestBuilder = HttpRequest
                 .newBuilder(config.oauth2AccessTokenUri())
                 .timeout(Duration.ofSeconds(config.httpTimeout()))
-                .header(HEADER_CONTENT_TYPE, "application/json");
+                .header(HEADER_CONTENT_TYPE, "application/x-www-form-urlencoded");
 
-        AccessTokenRequest accessTokenRequest = new AccessTokenRequest();
-        accessTokenRequest.setType("api-key");
-        accessTokenRequest.setKey(config.oauth2ClientId());
-        accessTokenRequest.setSecret(config.oauth2ClientSecret().value());
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest("api-key",
+                config.oauth2ClientId(), config.oauth2ClientSecret().value());
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -38,40 +38,32 @@ public class ApiKeyAccessTokenHttpRequestBuilder implements HttpRequestBuilder {
             return accessTokenRequestBuilder
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new ConnectException("Cannot get OAuth2 ApiKey access token", e);
         }
     }
 
-    static class AccessTokenRequest {
-        String type;
-        String key;
-        String secret;
+    private static class AccessTokenRequest {
+        final String type;
+        final String key;
+        final String secret;
 
-        public AccessTokenRequest() {
+        public AccessTokenRequest(String type, String key, String secret) {
+            this.type = type;
+            this.key = key;
+            this.secret = secret;
         }
 
+        //Getters needed for serdes
         public String getType() {
             return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
         }
 
         public String getKey() {
             return key;
         }
 
-        public void setKey(String key) {
-            this.key = key;
-        }
-
         public String getSecret() {
             return secret;
-        }
-
-        public void setSecret(String secret) {
-            this.secret = secret;
         }
     }
 

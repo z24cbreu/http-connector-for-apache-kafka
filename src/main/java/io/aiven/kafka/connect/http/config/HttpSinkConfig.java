@@ -500,45 +500,26 @@ public class HttpSinkConfig extends AbstractConfig {
                 }
                 break;
             case OAUTH2:
+            case APIKEY:
                 if (oauth2AccessTokenUri() == null) {
                     throw new ConfigException(
                             OAUTH2_ACCESS_TOKEN_URL_CONFIG, getString(OAUTH2_ACCESS_TOKEN_URL_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.OAUTH2);
+                                    + " = " + authorizationType());
                 }
                 if (oauth2ClientId() == null || oauth2ClientId().isEmpty()) {
                     throw new ConfigException(
                             OAUTH2_CLIENT_ID_CONFIG,
                             getString(OAUTH2_CLIENT_ID_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.OAUTH2);
+                                    + " = " + authorizationType());
                 }
                 if (oauth2ClientSecret() == null || oauth2ClientSecret().value().isEmpty()) {
                     throw new ConfigException(
                             OAUTH2_CLIENT_SECRET_CONFIG,
                             getPassword(OAUTH2_CLIENT_SECRET_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.OAUTH2);
-                }
-                break;
-            case APIKEY:
-                if(oauth2AccessTokenUri() == null) {
-                    throw new ConfigException(
-                            OAUTH2_ACCESS_TOKEN_URL_CONFIG, getString(OAUTH2_ACCESS_TOKEN_URL_CONFIG),
-                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.APIKEY);
-                }
-                if(oauth2ClientId() == null || oauth2ClientId().isEmpty()) {
-                    throw new ConfigException(
-                            OAUTH2_CLIENT_ID_CONFIG, getString(OAUTH2_CLIENT_ID_CONFIG),
-                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.APIKEY);
-                }
-                if (oauth2ClientSecret() == null || oauth2ClientSecret().value().isEmpty()) {
-                    throw new ConfigException(
-                            OAUTH2_CLIENT_SECRET_CONFIG, getString(OAUTH2_CLIENT_SECRET_CONFIG),
-                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + AuthorizationType.APIKEY);
+                                    + " = " + authorizationType());
                 }
                 break;
             case NONE:

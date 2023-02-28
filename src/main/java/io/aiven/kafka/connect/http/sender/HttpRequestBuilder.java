@@ -16,6 +16,7 @@
 
 package io.aiven.kafka.connect.http.sender;
 
+import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 
