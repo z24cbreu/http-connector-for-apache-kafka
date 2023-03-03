@@ -16,13 +16,6 @@
 
 package io.aiven.kafka.connect.http.config;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.kafka.common.config.AbstractConfig;
-import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.common.config.types.Password;
-import org.apache.kafka.connect.errors.ConnectException;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,6 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.apache.kafka.common.config.AbstractConfig;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.config.types.Password;
+import org.apache.kafka.connect.errors.ConnectException;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class HttpSinkConfig extends AbstractConfig {
     private static final String CONNECTION_GROUP = "Connection";
@@ -489,37 +490,38 @@ public class HttpSinkConfig extends AbstractConfig {
     }
 
     private void validate() {
-        switch (authorizationType()) {
+        final AuthorizationType authorizationType = authorizationType();
+        switch (authorizationType) {
             case STATIC:
                 if (headerAuthorization() == null || headerAuthorization().isBlank()) {
                     throw new ConfigException(
                         HTTP_HEADERS_AUTHORIZATION_CONFIG,
                         getPassword(HTTP_HEADERS_AUTHORIZATION_CONFIG),
-                        "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                            + " = " + AuthorizationType.STATIC);
+                            "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
+                            + " = " + authorizationType);
                 }
                 break;
             case OAUTH2:
             case APIKEY:
-                if (oauth2AccessTokenUri() == null) {
+                if (getString(OAUTH2_ACCESS_TOKEN_URL_CONFIG) == null) {
                     throw new ConfigException(
                             OAUTH2_ACCESS_TOKEN_URL_CONFIG, getString(OAUTH2_ACCESS_TOKEN_URL_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + authorizationType());
+                            + " = " + authorizationType);
                 }
                 if (oauth2ClientId() == null || oauth2ClientId().isEmpty()) {
                     throw new ConfigException(
                             OAUTH2_CLIENT_ID_CONFIG,
                             getString(OAUTH2_CLIENT_ID_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + authorizationType());
+                            + " = " + authorizationType);
                 }
                 if (oauth2ClientSecret() == null || oauth2ClientSecret().value().isEmpty()) {
                     throw new ConfigException(
                             OAUTH2_CLIENT_SECRET_CONFIG,
                             getPassword(OAUTH2_CLIENT_SECRET_CONFIG),
                             "Must be present when " + HTTP_HEADERS_CONTENT_TYPE_CONFIG
-                                    + " = " + authorizationType());
+                            + " = " + authorizationType);
                 }
                 break;
             case NONE:
@@ -619,14 +621,14 @@ public class HttpSinkConfig extends AbstractConfig {
     }
 
     public final URI oauth2AccessTokenUri() {
-        return getString(OAUTH2_ACCESS_TOKEN_URL_CONFIG) != null ? toURI(OAUTH2_ACCESS_TOKEN_URL_CONFIG) : null;
+        return toURI(OAUTH2_ACCESS_TOKEN_URL_CONFIG);
     }
 
     private URI toURI(final String propertyName) {
         try {
             return new URL(getString(propertyName)).toURI();
         } catch (final MalformedURLException | URISyntaxException e) {
-            throw new ConnectException(e);
+            throw new ConnectException(String.format("Could not retrieve proper URI from %s", propertyName), e);
         }
     }
 

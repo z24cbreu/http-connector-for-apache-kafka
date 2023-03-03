@@ -25,7 +25,7 @@ plugins {
     id 'distribution'
 
     // https://docs.gradle.org/current/userguide/checkstyle_plugin.html
-    //id 'checkstyle'
+    id 'checkstyle'
 
     // https://docs.gradle.org/current/userguide/idea_plugin.html
     id 'idea'
@@ -164,9 +164,9 @@ dependencies {
     integrationTestImplementation sourceSets.test.output
 }
 
-//checkstyle {
-//    toolVersion '8.25'
-//}
+checkstyle {
+    toolVersion '8.25'
+}
 
 compileJava {
     // Enable modules.

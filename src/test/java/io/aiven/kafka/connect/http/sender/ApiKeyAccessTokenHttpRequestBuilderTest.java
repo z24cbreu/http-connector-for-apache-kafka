@@ -16,15 +16,18 @@
 
 package io.aiven.kafka.connect.http.sender;
 
-import io.aiven.kafka.connect.http.config.HttpSinkConfig;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.Test;
-
 import java.net.URL;
 import java.util.Map;
 
+import io.aiven.kafka.connect.http.config.HttpSinkConfig;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ApiKeyAccessTokenHttpRequestBuilderTest {
 
@@ -52,4 +55,28 @@ class ApiKeyAccessTokenHttpRequestBuilderTest {
 
     }
 
+    @Test
+    void shouldThrowExceptionWithoutConfig() {
+        final Exception thrown = assertThrows(NullPointerException.class, () ->
+            new ApiKeyAccessTokenHttpRequestBuilder().build(null).build()
+        );
+        assertEquals("config should not be null", thrown.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWithoutRightConfig() {
+        final var configBase = Map.of(
+                "http.url", "http://localhost:42",
+                "http.authorization.type", "oauth2",
+                "oauth2.access.token.url", "http://localhost:42/token",
+                "oauth2.client.id", "some_client_id",
+                "oauth2.client.secret", "some_client_secret"
+        );
+        final HttpSinkConfig config = new HttpSinkConfig(configBase);
+
+        final Exception thrown = assertThrows(IllegalArgumentException.class, () ->
+            new ApiKeyAccessTokenHttpRequestBuilder().build(config).build()
+        );
+        assertEquals("The expected authorization type is apikey", thrown.getMessage());
+    }
 }

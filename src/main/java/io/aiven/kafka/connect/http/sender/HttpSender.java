@@ -16,16 +16,19 @@
 
 package io.aiven.kafka.connect.http.sender;
 
-import io.aiven.kafka.connect.http.config.HttpSinkConfig;
-import org.apache.kafka.connect.errors.ConnectException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.kafka.connect.errors.ConnectException;
+
+import io.aiven.kafka.connect.http.config.HttpSinkConfig;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class HttpSender {
 
@@ -38,7 +41,7 @@ public class HttpSender {
     private final HttpRequestBuilder httpRequestBuilder;
 
     protected HttpSender(final HttpSinkConfig config) {
-        this(config, HttpRequestBuilder.DEFAULT_HTTP_REQUEST_BUILDER, HttpClient.newHttpClient());
+        this(config, HttpRequestBuilder.DEFAULT_HTTP_REQUEST_BUILDER);
     }
 
     protected HttpSender(final HttpSinkConfig config,
